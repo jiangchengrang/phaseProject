@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>主页</title>
+    <link rel="stylesheet" media="screen" href="./particles/css/style.css">
+    <script src="./js/3.5.1jquery.min.js"></script>
+    <script src="./js/jquery-2.2.4.min.js"></script>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .box {
+            position: absolute;
+            left: 10%;
+            bottom:20%;
+            width: 80%;
+            height:auto;
+            /* background-color: brown; */
+            color:white;
+        }
+        .textStyle{
+            width: 100%;
+            background-color: rgb(86, 86, 139);
+            color: white;
+            margin-bottom: 10px;
+            height: 25px;
+            line-height: 25px;
+        }
+        tr,td,th{
+            border:1px solid white;
+            text-align: center;
+            height:30px;
+            line-height: 30px;
+        }
+        button{
+            margin-left: 10px;
+        }
+        a{
+            margin-left: 5px;
+        }
+        a:hover{
+            color:white;
+        }
+        .pageStyle{
+            width: 100%;
+            height:40px;
+            line-height: 40px;
+        }
+        span{
+            margin-right: 5px;
+        }
+        span:first-child{
+            margin-right: 20px;
+        }
+        .mySearch{
+            width: 100%;
+            height:40px;
+            margin-bottom: 10px;
+            line-height: 40px;
+            text-align: right;
+        }
+        .mySearch input{
+            width: 15%;
+            height:20px;
+            border-radius: 5px;
+            background-color: rgba(255,255,255,0.5);
+            border:none;
+        }
+        .mySearch input:focus{
+            border:none;
+            outline:white;
+        }
+        .mySearch button{
+            width: 50px;
+            height:18px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="particles-js">
+       <div class="box">
+             <div class="mySearch">
+                <label>姓名：</label><input type="text" name="name"> 
+                <label>电话：</label><input type="text" name="tel"> 
+                <button onclick="searchData()">查询</button>
+            </div>
+            <div class="textStyle">
+                <span>数据展示</span>
+                <a href="/login.html">登录</a>
+                <a href="./register.html">注册</a>
+            </div>
+            <table   cellspacing='0' class="myTable" width='100%'>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>姓名</th>
+                        <th>年龄</th>
+                        <th>电话</th>
+                        <th>性别</th>
+                        <th>邮箱</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div class="pageStyle"></div>
+       </div>
+    </div>
+    <script>
+        var pageNum=1,num=10;
+        //页面一进入，函数自调用
+        $(function(){
+            getData(0);
+        })
+        //获取数据的方法，写一次随处调用
+        function getData(staus){
+            var name = $("input[name=name]").val();
+            var tel = $("input[name=tel]").val();
+            if(staus === 1) pageNum = 1;//根据传入的数字判断pageNum是否需要重置 0--不需要 1--需要
+            var postStr = "pageNum=" + pageNum + "&num=" + num + "&name="+ name +'&tel=' + tel;
+            var str = '';
+            $("tbody").empty();//清空tbody里面的内容，防止数据叠加
+            $.ajax({
+                //不用restful规范，name，tel默认为空，会报错
+                //`/user/getDataAll/${pageNum}&${num}&${name}&${tel}`
+                url: "/user/getDataAll?" + postStr,
+                type: "get",
+                dataType: "json", 
+                //data:postStr,
+                error: (XMLHttpRequest, textStatus, errorThrown) => {
+                    var s1=XMLHttpRequest;
+                    var s2=textStatus;
+                    var s3=errorThrown;
+                    alert("error message : "+errorThrown.toString())
+                    },
+                success: data => {
+                    let obj = data.data;
+                    var pageBottom = "";
+                    //obj.length=0为查不到数据
+                    if(obj.length === 0){ 
+                        str+=`
+                            <tr>
+                                <td colspan="7">无相关数据</td>
+                            </tr>
+                        `;
+                    }else{
+                        for(var i = 0;i < obj.length ; i++){
+                            str+=`<tr>
+                                <td> ${obj[i].id } </td>
+                                <td> ${obj[i].name}</td>
+                                <td> ${obj[i].age} </td>
+                                <td> ${obj[i].tel} </td>
+                                <td> ${obj[i].sex===0 ? "女":obj[i].sex===1?"男":'保密'} </td>
+                                <td> ${obj[i].email} </td>
+                                <td><button onclick="edit(${ obj[i].id})">编辑</button>
+                                    <button onclick="del(${ obj[i].id})">删除</button>
+                                </td>
+                            </tr>`
+                        } 
+                    } 
+                    $("tbody").append(str); //追加数据
+                    $('.pageStyle').empty()//先清空再追加数据，防止数据叠加
+                    var totalNum = Math.ceil(data.total/num);
+                    pageBottom += '<span>'+ data.total + '条数据</span><span>共' + totalNum + '页</span><span>当前第'+ pageNum +'页</span>'
+                    if(totalNum>1&&totalNum>pageNum){ //总页数大于1或者大于当前页数
+                        pageBottom+='<button onclick="next()">下一页</button>'
+                    } 
+                    if(pageNum>1){ //当前页数大于1
+                        pageBottom+='<button onclick="prev()">上一页</button>'
+                    }
+                    $('.pageStyle').append(pageBottom);
+                }
+            }); 
+        }
+        //修改
+        function edit(id){
+           location.href="/edit.html?id="+id;
+        }
+        //删除
+        function del(id){
+            var msg = "您确定要删除当前用户吗？";
+            if (confirm(msg)==true){ //确认
+                // var postStr ="id="+id;
+                $.ajax({
+                    url: "/user/delId/"+id,
+                    type: "delete",
+                    dataType: "json", 
+                    // data:postStr,
+                    error: (XMLHttpRequest, textStatus, errorThrown) => {
+                        var s1=XMLHttpRequest;
+                        var s2=textStatus;
+                        var s3=errorThrown;
+                        alert("error message : "+errorThrown.toString())
+                        },
+                    success: data => {
+                        if(data.code==200){
+                            alert('删除成功')
+                            location.replace(location.href)
+                        }
+                    }
+                })
+            }else{ //取消
+                return false;
+            }
+        }
+        //下一页
+        function next(){
+            pageNum++;
+            getData(0);
+        }
+        //上一页
+        function prev(){
+            pageNum--;
+            getData(0);
+        }
+        //点击搜索
+        function searchData(){
+            getData(1);
+        }
+    </script>
+    <script src="./particles/particles.min.js"></script>
+    <script src="./particles/js/app.js"></script>
+    <script src="./particles/js/lib/stats.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>修改</title>
+    <link rel="stylesheet" media="screen" href="./particles/css/style.css">
+    <script src="./js/3.5.1jquery.min.js"></script>
+    <script src="./js/jquery-2.2.4.min.js"></script>
+    <style>
+        .box {
+            width: 305px;
+            height: auto;
+            position: absolute;
+            left: 40%;
+            bottom: 15%;
+            margin-top: 30px;
+            background-color: rgba(255, 254, 253, .5);
+            color: white;
+            /* padding: 40px; */
+            font-size: 14px;
+            padding-bottom: 20px;
+        }
+
+        .fromStyle {
+            margin: 0 auto;
+            width: 75%;
+        }
+
+        .inputStyle {
+            line-height: 30px;
+            margin-bottom: 20px;
+        }
+
+        input[type='text'] {
+            width: 73%;
+            height: 20px;
+        }
+
+        .myStyle {
+            width: 100%;
+            text-align: center;
+        }
+
+        .button {
+            width: 60px;
+            height: 30px;
+            border-radius: 5px;
+            margin-right: 10px;
+            border: 1px solid white;
+            line-height: 30px;
+            text-align: center;
+            display: inline-block;
+            transition: 1s;
+        }
+
+        .button:hover {
+            background-color: rgb(86, 86, 139);
+            border: 1px solid rgb(86, 86, 139);
+            color: white;
+
+        }
+
+        a {
+            cursor: pointer;
+            color: steelblue;
+        }
+
+        .textStyle {
+            width: 100%;
+            background-color: rgb(86, 86, 139);
+            color: white;
+            margin-bottom: 20px;
+            height: 25px;
+            line-height: 25px;
+            /* padding-left: 5px; */
+        }
+        .pointer:hover{
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="particles-js">
+        <div class="box">
+            <div class="textStyle">用户修改</div>
+            <form class="fromStyle">
+                <div class="inputStyle">
+                    <label>姓 名 :</label>
+                    <input type="text" name="name">
+                </div>
+                <div class="inputStyle">
+                    <label>电 话 :</label>
+                    <input type="text" name="tel">
+                </div>
+                <div class="inputStyle">
+                    <label>邮 箱:</label>
+                    <input type="text" name="email">
+                </div>
+                <div class="inputStyle">
+                    <label>年 龄:</label>
+                    <input type="text" name="age">
+                </div>
+                <div class="inputStyle">
+                    <label>性 别 :</label>
+                    <input type="radio" name="sex" value="1">男
+                    <input type="radio" name="sex" value="0">女
+                    <input type="radio" name="sex" value="-1">保密
+                </div>
+            </form>
+            <div class="myStyle">
+                <div class="button pointer" onclick="editById()">确认修改</div>
+                <div class="button pointer" onclick="go()">取消</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(function(){
+            getData();
+        })
+        function getData(){
+            //获取ID的第一个方法
+            //var id = window.location.href.split('?')[1].split('=')[1];
+            //获取ID的第二个方法
+            //把URL中的查询字符串封装成一个对象obj
+            var obj = new URLSearchParams(location.search);
+            //获取ID必须用get()，方法里的参数为名称
+            var id = obj.get('id');
+            $.ajax({
+                url: "/user/getDataId/"+id,
+                type: "get",
+                dataType: "json", 
+                // data:str,
+                error: (XMLHttpRequest, textStatus, errorThrown) => {
+                    var s1=XMLHttpRequest;
+                    var s2=textStatus;
+                    var s3=errorThrown;
+                    alert("error message : "+errorThrown.toString())
+                    },
+                success: data => {
+                    $("input[name=name]").val(data.data[0].name);
+                    $("input[name=tel]").val(data.data[0].tel);
+                    $("input[name=email]").val(data.data[0].email);
+                    $("input[name=age]").val(data.data[0].age);
+                    $(":radio[name='sex'][value='" +data.data[0].sex +"']").prop("checked", "checked");
+                } 
+            }); 
+        }
+        function editById() {
+                var name = $("input[name=name]").val()
+                var tel = $("input[name=tel]").val();
+                var email = $("input[name=email]").val()
+                var age = $("input[name=age]").val();
+                var sex = $("input[type='radio']:checked").val();
+                var obj = new URLSearchParams(location.search);
+                // var id = window.location.href.split('?')[1].split('=')[1];
+                var id = obj.get('id');
+                var postStr ='name='+name+'&tel='+tel+
+                           '&email='+email+'&age='+age+'&sex='+sex+'&id='+id;
+                $.ajax({
+                    url: "/user/edit",
+                    type: "put",
+                    dataType: "json", 
+                    data:postStr,
+                    error: (XMLHttpRequest, textStatus, errorThrown) => {
+                        var s1=XMLHttpRequest;
+                        var s2=textStatus;
+                        var s3=errorThrown;
+                        alert("error message : "+errorThrown.toString())
+                    },
+                    success: data => {
+                        if(data.code==200){
+                            alert('修改成功')
+                            location.href="/home.html";
+                        }else{
+                            alert('修改失败')
+                        }
+                    } 
+                }); 
+            }
+        function go(){
+            //返回上一页
+            history.go(-1)
+        }
+        </script>
+    <script src="./particles/particles.min.js"></script>
+    <script src="./particles/js/app.js"></script>
+    <script src="./particles/js/lib/stats.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>注册</title>
+    <link rel="stylesheet" media="screen" href="./particles/css/style.css">
+    <script src="./js/3.5.1jquery.min.js"></script>
+    <script src="./js/jquery-2.2.4.min.js"></script>
+    <style>
+        .box {
+            width: 333px;
+            height: auto;
+            position: absolute;
+            left: 40%;
+            bottom: 15%;
+            margin-top: 30px;
+            background-color: rgba(255, 254, 253, .5);
+            color: white;
+            /* padding: 40px; */
+            font-size: 14px;
+            padding-bottom: 20px;
+        }
+
+        .fromStyle {
+            margin: 0 auto;
+            width: 73%;
+        }
+
+        .inputStyle {
+            line-height: 30px;
+            margin-bottom: 20px;
+        }
+
+        input[type='text'], input[type='password'] {
+            width: 72%;
+            height: 20px;
+        }
+
+        .myStyle {
+            width: 100%;
+            text-align: center;
+        }
+
+        .button {
+            width: 60px;
+            height: 30px;
+            border-radius: 5px;
+            margin-right: 10px;
+            border: 1px solid white;
+            line-height: 30px;
+            text-align: center;
+            display: inline-block;
+            transition: 1s;
+        }
+        .button:hover {
+            background-color: rgb(86, 86, 139);
+            border: 1px solid rgb(86, 86, 139);
+            color: white;
+            cursor: pointer;
+        }
+        a {
+            cursor: pointer;
+            color: steelblue;
+        }
+        .textStyle {
+            width: 100%;
+            background-color: rgb(86, 86, 139);
+            color: white;
+            margin-bottom: 20px;
+            height: 25px;
+            line-height: 25px;
+        }
+        #unameyz{
+            color:red;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="particles-js">
+        <div class="box">
+            <div class="textStyle">用户注册</div>
+            <form class="fromStyle">
+                <div class="inputStyle">
+                    <label>用 户 :</label>
+                    <input type="text" name="uname" onblur="searchUser(this)"><span id="unameyz"></span>
+                </div>
+                <div class="inputStyle">
+                    <label>密 码 :</label>
+                    <input type="password" name="pwd">
+                </div>
+                <div class="inputStyle">
+                    <label>姓 名 :</label>
+                    <input type="text" name="name">
+                </div>
+                <div class="inputStyle">
+                    <label>电 话 :</label>
+                    <input type="text" name="tel">
+                </div>
+                <div class="inputStyle">
+                    <label>邮 箱 :</label>
+                    <input type="text" name="email">
+                </div>
+                <div class="inputStyle">
+                    <label>年 龄 :</label>
+                    <input type="text" name="age">
+                </div>
+                <div class="inputStyle">
+                    <label>性 别 :</label>
+                    <input type="radio" name="sex"checked value="1">男
+                    <input type="radio" name="sex" value="0">女
+                    <input type="radio" name="sex" value="-1">保密
+                </div>
+            </form>
+            <div class="myStyle">
+                <div class="button" onclick="register()">注册</div>
+                <a href="./login.html">去登录</a>
+            </div>
+        </div>
+    </div>
+    <script>
+        //定一个开关，用户判断用户名输入的状态，false--默认，用户名重复 true--不重复，可以进行后面的操作
+        var isOnclick=false;
+        //用户名查重
+        function searchUser(inputData){
+            var _uname = inputData.value;
+            if(!_uname) return;
+            $.ajax({
+                url: "/user/searchuser/"+_uname,
+                type: "get",
+                dataType: "json",
+                error: (XMLHttpRequest, textStatus, errorThrown) => {
+                    var s1=XMLHttpRequest;
+                    var s2=textStatus;
+                    var s3=errorThrown;
+                    alert("error message : "+errorThrown.toString())
+                    },
+                success: data => {
+                    if(data.code==400){
+                         unameyz.innerHTML='×';
+                        //alert('用户名重复，请重新输入')
+                        //$("input[name=uname]").val('')//用户名重复，清空input的值
+                         isOnclick=false;//用户名重复，状态为false
+                    }else{
+                        unameyz.innerHTML='' ;
+                         isOnclick=true;
+                    }
+                } 
+            });
+        }
+        function register() {
+                var uname = $("input[name=uname]").val();
+                if( uname===''){
+                    alert('请输入用户名')
+                    return ;
+                }
+                //判断值
+                if(!isOnclick){
+                    alert('用户名重复，请重新输入')
+                    return ;
+                }
+                var pwd = $("input[name=pwd]").val();
+                if(pwd===''){
+                    alert('请输入密码')
+                    return ;
+                }
+                var name = $("input[name=name]").val()
+                var tel = $("input[name=tel]").val();
+                var email = $("input[name=email]").val()
+                var age = $("input[name=age]").val();
+                var sex = $("input[type='radio']:checked").val();
+                var postStr ="uname="+uname +"&pwd="+ pwd+'&name='+name+'&tel='+tel+
+                           '&email='+email+'&age='+age+'&sex='+sex;
+                $.ajax({
+                    url: "/user/reg",
+                    type: "POST",
+                    dataType: "json", 
+                    data:postStr,
+                    error: (XMLHttpRequest, textStatus, errorThrown) => {
+                        var s1=XMLHttpRequest;
+                        var s2=textStatus;
+                        var s3=errorThrown;
+                        alert("error message : "+errorThrown.toString())
+                        },
+                    success: data => {
+                        if(data.code==200){
+                            alert('注册成功')
+                            window.location.href="/login.html";
+                        }else{
+                            alert(data.msg)
+                        }
+                    } 
+                }); 
+            }
+        </script>
+    <script src="./particles/particles.min.js"></script>
+    <script src="./particles/js/app.js"></script>
+    <script src="./particles/js/lib/stats.js"></script>
+</body>
+
+</html>
